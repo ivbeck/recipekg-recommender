@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+<header class="site-header">
+    <div class="container">
+        <h1><a href="/">{{ app_name }}</a></h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/health">Health</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <small>
+            Endpoint: {{ sparql_endpoint }}
+        </small>
+    </div>
+</footer>
+</body>
+</html>
