@@ -1,2 +1,2 @@
 run:
-	flask --app backend.main run --debug
+	flask --app backend.main run --debug -p 1337

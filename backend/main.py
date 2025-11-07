@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
-from flask import Flask
+
 from dotenv import load_dotenv
+from flask import Flask
 
 
 def create_app() -> Flask:
@@ -17,8 +18,8 @@ def create_app() -> Flask:
     # Basic config
     app.config.setdefault("SECRET_KEY", os.getenv("SECRET_KEY", "dev-secret-key"))
     app.config.setdefault(
-        "FOODKG_SPARQL_ENDPOINT",
-        os.getenv("FOODKG_SPARQL_ENDPOINT", "https://foodkg.rpi.edu/sparql"),
+        "SPARQL_ENDPOINT",
+        os.getenv("SPARQL_ENDPOINT", "http://localhost:3030/recipes/sparql"),
     )
 
     # Register blueprints

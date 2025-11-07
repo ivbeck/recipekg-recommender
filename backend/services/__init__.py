@@ -1,1 +1,1 @@
-
+from .recipe_candidate_fetcher import fetch_test_data
