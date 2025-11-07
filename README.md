@@ -15,6 +15,9 @@ cp .env.example .env
 
 # 4) Run the dev server
 make run
+# or if you're not using make
+flask --app backend.main run --debug
+ 
 # Open http://127.0.0.1:5000/
 ```
 
