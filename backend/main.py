@@ -31,7 +31,7 @@ def create_app() -> Flask:
     def inject_globals():
         return {
             "app_name": "foodkg-recommender",
-            "sparql_endpoint": app.config.get("FOODKG_SPARQL_ENDPOINT"),
+            "sparql_endpoint": app.config.get("SPARQL_ENDPOINT"),
         }
 
     return app
