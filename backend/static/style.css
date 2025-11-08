@@ -143,3 +143,89 @@ pre {
 main {
     flex: 1;
 }
+
+.content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+/* Each recipe becomes a card */
+.content li {
+    margin: 0; /* grid handles spacing */
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 14px 14px 12px;
+    transition: box-shadow 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+
+.content li:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: #dbe3ef; /* subtle lift */
+}
+
+/* Title line inside the card */
+.content li p {
+    margin: 0 0 10px;
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* Layout for meta row (chips) */
+.recipe-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Base chip */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    line-height: 1;
+    border: 1px solid var(--border);
+    background: #f3f6fc;
+    color: #0f172a;
+    white-space: nowrap;
+}
+
+/* USDA chip accent */
+.chip.usda {
+    background: #eef2ff;
+    border-color: #e0e7ff;
+    color: #1e1b4b;
+}
+
+/* Calories chip accent */
+.chip.cal {
+    background: #ecfeff;
+    border-color: #cffafe;
+    color: #083344;
+}
+
+/* Optional icon dots for chips (pure CSS) */
+.chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+/* Adjust for light/dark contrast if you swap themes later */
+@media (prefers-contrast: more) {
+    .chip {
+        border-width: 2px;
+    }
+}
+

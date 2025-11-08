@@ -4,6 +4,47 @@
 
 {% block content %}
 <section class="hero">
-    <h2>Welcome to {{ app_name }}</h2>
+    <h2>Find recipes by ingredients</h2>
+    <form action="{{ url_for('home.index') }}" class="search-form" method="get">
+        <label for="ingredients">Ingredients (comma separated)</label>
+        <input
+                autocomplete="off"
+                id="ingredients"
+                name="ingredients"
+                placeholder="e.g., chicken, rice, tomatoes"
+                required
+                type="text"
+                value="{{ ingredients_query or '' }}"
+        >
+        <button type="submit">Search</button>
+        <a class="clear-button" href="{{ url_for('home.index') }}">Clear</a>
+    </form>
 </section>
+
+<section class="content">
+    {% if recipes is none %}
+    <p>Enter ingredients and hit search.</p>
+    {% else %}
+    <h3>Results for: {{ ingredients_query }}</h3>
+    {% set items = recipes.results.bindings if recipes and recipes.results and recipes.results.bindings else [] %}
+    {% if items %}
+    <ul>
+        {% for r in items %}
+        <li>
+            <p>{{ r.name.value | replace('"','') }}</p>
+            <div class="recipe-meta">
+                <span class="chip usda">USDA: {{ r.usdascore.value }}</span>
+                <span class="chip cal">Calories: {{ r.calAmount.value }} kcal</span>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No recipes found. Try fewer or different ingredients.</p>
+    {% endif %}
+    {% endif %}
+</section>
+<pre>
+    {{ possible_ingredients }}
+</pre>
 {% endblock %}

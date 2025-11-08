@@ -5,6 +5,10 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 
+from backend.services import get_ingredient_list
+
+INGREDIENTS = get_ingredient_list()
+
 
 def create_app() -> Flask:
     load_dotenv()
@@ -32,6 +36,7 @@ def create_app() -> Flask:
         return {
             "app_name": "foodkg-recommender",
             "sparql_endpoint": app.config.get("SPARQL_ENDPOINT"),
+            "possible_ingredients": INGREDIENTS,
         }
 
     return app
