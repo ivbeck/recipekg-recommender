@@ -3,13 +3,20 @@ import logging
 from backend.config import execute_query
 
 query = """
-PREFIX food:  <http://purl.org/heals/food/>
-PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX food:      <http://purl.org/heals/food/>
+PREFIX healsIng:  <http://purl.org/heals/ingredient/>
+PREFIX recipeIng: <http://purl.org/recipekg/ingredient/>
+PREFIX rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT (REPLACE(STR(?ingType), "^.*/", "") AS ?ingredient)
 WHERE {
-  ?recipe food:hasIngredient ?ingNode .
-  ?ingNode rdf:type ?ingType .
+  ?recipe food:hasIngredient ?ing .
+  ?ing rdf:type ?ingType .
+
+  FILTER (
+    STRSTARTS(STR(?ingType), STR(healsIng:)) ||
+    STRSTARTS(STR(?ingType), STR(recipeIng:))
+  )
 }
 ORDER BY ?ingredient
 """

@@ -13,7 +13,8 @@ class RecipeQueryBuilder:
         PREFIX schema: <https://schema.org/>
         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
         PREFIX recipeKG: <http://purl.org/recipekg/>
-        PREFIX ingredient: <http://purl.org/recipekg/ingredient/>
+        PREFIX healsIng: <http://purl.org/heals/ingredient/>
+        PREFIX recipeIng: <http://purl.org/recipekg/ingredient/>
         PREFIX categories: <http://purl.org/recipekg/categories/>
         PREFIX food: <http://purl.org/heals/food/>
     """
@@ -49,9 +50,17 @@ class RecipeQueryBuilder:
             if len(ingredient_group) == 1:
                 # Single ingredient - no OR needed
                 ingredient_var = f"?ing{group_idx}"
+                ingredient_name = ingredient_group[0]
                 filters.append(f"""
         ?recipe food:hasIngredient {ingredient_var} .
-        {ingredient_var} a ingredient:{ingredient_group[0]} .
+        {ingredient_var} rdf:type ?ingType{group_idx} .
+        FILTER (
+            STRSTARTS(STR(?ingType{group_idx}), STR(healsIng:)) ||
+            STRSTARTS(STR(?ingType{group_idx}), STR(recipeIng:))
+        )
+        FILTER (
+            REPLACE(STR(?ingType{group_idx}), "^.*/", "") = "{ingredient_name}"
+        )
         """)
             else:
                 # Multiple alternatives - use UNION for OR logic
@@ -60,7 +69,14 @@ class RecipeQueryBuilder:
                     ingredient_var = f"?ing{group_idx}_{alt_idx}"
                     union_parts.append(f"""            {{
                 ?recipe food:hasIngredient {ingredient_var} .
-                {ingredient_var} a ingredient:{ingredient} .
+                {ingredient_var} rdf:type ?ingType{group_idx}_{alt_idx} .
+                FILTER (
+                    STRSTARTS(STR(?ingType{group_idx}_{alt_idx}), STR(healsIng:)) ||
+                    STRSTARTS(STR(?ingType{group_idx}_{alt_idx}), STR(recipeIng:))
+                )
+                FILTER (
+                    REPLACE(STR(?ingType{group_idx}_{alt_idx}), "^.*/", "") = "{ingredient}"
+                )
             }}""")
                 
                 filters.append(f"""
