@@ -96,17 +96,18 @@ class RecipeQueryBuilder:
         return f"\n        ?recipe recipeKG:hasDietaryRestriction {dietary_type}."
 
     @staticmethod
-    def build_query(ingredient_groups: List[List[str]], dietary_preference: Optional[str] = None) -> str:
-        """
-        Build query with ingredient groups.
-        
-        Args:
-            ingredient_groups: List of lists, where each inner list contains alternative
-                             ingredient names (OR logic within group, AND logic between groups)
-            dietary_preference: Optional dietary preference filter
-        """
+    def build_query(ingredient_groups: List[List[str]], dietary_preference: Optional[str] = None, sort_option: str = "usda_desc") -> str:
         ingredient_filters = RecipeQueryBuilder.build_ingredient_filters(ingredient_groups)
         dietary_filter = RecipeQueryBuilder.build_dietary_filter(dietary_preference)
+
+        # Map frontend sort options to SPARQL ORDER BY
+        sort_map = {
+            "usda_desc": "DESC(?usdascore)",
+            "usda_asc": "ASC(?usdascore)",
+            "cal_desc": "DESC(?calAmount)",
+            "cal_asc": "ASC(?calAmount)"
+        }
+        order_by = sort_map.get(sort_option, "DESC(?usdascore)")
 
         query = f"""{RecipeQueryBuilder.PREFIXES}
     SELECT DISTINCT ?recipe ?name ?usdascore ?calAmount
@@ -114,36 +115,27 @@ class RecipeQueryBuilder:
         ?recipe a   schema:Recipe ;
                     schema:name ?name ;
                     recipeKG:hasUSDAScore ?usdascore . 
-        
 
         ?recipe recipeKG:hasNutritionalInformation ?nut .
         ?nut recipeKG:hasCalorificData ?cal .
         ?cal recipeKG:hasAmount ?calAmount .
-        
+
         {ingredient_filters}{dietary_filter}    
     }}
-    ORDER BY DESC(?usdascore)
+    ORDER BY {order_by}
     LIMIT 1000
         """
-
         return query
+
 
 
 def fetch_recipes_by_ingredients(
         ingredient_groups: List[List[str]],
-        dietary_preference: Optional[str] = None
+        dietary_preference: Optional[str] = None,
+        sort_option: str = "usda_desc"
 ):
-    """
-    Fetch recipes by ingredient groups.
-    
-    Args:
-        ingredient_groups: List of lists, where each inner list contains alternative
-                         ingredient names (OR logic within group, AND logic between groups)
-                         Example: [['Chickpea', 'Chickpeas'], ['Tomato']]
-        dietary_preference: Optional dietary preference filter
-    """
-    logger.info("Fetching recipes for ingredient groups: %s", ingredient_groups)
-    query = RecipeQueryBuilder.build_query(ingredient_groups, dietary_preference)
+    logger.info("Fetching recipes for ingredient groups: %s, sort: %s", ingredient_groups, sort_option)
+    query = RecipeQueryBuilder.build_query(ingredient_groups, dietary_preference, sort_option)
     logger.debug("SPARQL query: %s", query)
     res = execute_query(query)
     logger.debug("Query returned %d results", len(res.get("results", {}).get("bindings", [])))

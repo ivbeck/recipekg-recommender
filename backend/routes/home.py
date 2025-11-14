@@ -22,7 +22,8 @@ def _parse_ingredients(arg: str | None) -> List[str]:
 @bp.route("/")
 def index():
     input_ingredients = _parse_ingredients(request.args.get("ingredients"))
-    
+    sort_option = request.args.get("sort", "usda_desc")  # default
+
     ingredient_matches = match_ingredients(
         input_ingredients, 
         INGREDIENTS, 
@@ -37,14 +38,15 @@ def index():
     for matched_list in ingredient_groups:
         matched_ingredients.extend(matched_list)
     
-    recipes = fetch_recipes_by_ingredients(ingredient_groups) if ingredient_groups else None
+    recipes = fetch_recipes_by_ingredients(ingredient_groups, sort_option=sort_option) if ingredient_groups else None
     
     return render_template(
         "index.html",
         title="Home",
         ingredients_query=",".join(input_ingredients),
         recipes=recipes,
-        ingredient_groups=", ".join(["[" + ",".join(x) + "]" for x in ingredient_groups])
+        ingredient_groups=", ".join(["[" + ",".join(x) + "]" for x in ingredient_groups]),
+        sort=sort_option
     )
 
 

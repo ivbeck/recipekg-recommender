@@ -19,6 +19,15 @@
             >
             <div id="autocomplete-list" class="autocomplete-list"></div>
         </div>
+        
+        <!-- Sorting dropdown -->
+        <select name="sort" id="sort">
+            <option value="usda_desc" {% if sort=='usda_desc' %}selected{% endif %}>USDA Score (High → Low)</option>
+            <option value="usda_asc" {% if sort=='usda_asc' %}selected{% endif %}>USDA Score (Low → High)</option>
+            <option value="cal_desc" {% if sort=='cal_desc' %}selected{% endif %}>Calories (High → Low)</option>
+            <option value="cal_asc" {% if sort=='cal_asc' %}selected{% endif %}>Calories (Low → High)</option>
+        </select>
+
         <button type="submit">Search</button>
         <a class="clear-button" href="{{ url_for('home.index') }}">Clear</a>
     </form>
