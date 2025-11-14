@@ -20,7 +20,7 @@ def get_ingredient_list():
     sparql_dict = execute_query(query)
 
     ingredients = [
-        i["ingredient"]["value"]
+        i["ingredient"]["value"].replace("*", "")
         for i in sparql_dict["results"]["bindings"]
     ]
 
