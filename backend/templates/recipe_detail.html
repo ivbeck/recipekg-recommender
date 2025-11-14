@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.name or 'Recipe' }} · {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="recipe-detail">
+    <button onclick="history.back()" class="back-link">
+        <span class="back-icon">←</span>
+        <span>Back to Search</span>
+    </button>
+    
+    <article class="recipe-card">
+        <header class="recipe-header">
+            <h1>{{ recipe.name or 'Unnamed Recipe' }}</h1>
+            {% if recipe.usda_score %}
+            <div class="recipe-scores">
+                <span class="chip usda">USDA Score: {{ recipe.usda_score }}</span>
+                {% if recipe.calories %}
+                <span class="chip cal">Calories: {{ recipe.calories }} kcal</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </header>
+
+        {% if recipe.description %}
+        <section class="recipe-section">
+            <h2>Description</h2>
+            <p>{{ recipe.description }}</p>
+        </section>
+        {% endif %}
+
+        {% if recipe.recipe_yield or recipe.prep_time or recipe.cook_time or recipe.total_time %}
+        <section class="recipe-section">
+            <h2>Recipe Information</h2>
+            <div class="recipe-meta-grid">
+                {% if recipe.recipe_yield %}
+                <div class="meta-item">
+                    <strong>Yield:</strong> {{ recipe.recipe_yield }}
+                </div>
+                {% endif %}
+                {% if recipe.prep_time %}
+                <div class="meta-item">
+                    <strong>Prep Time:</strong> {{ recipe.prep_time }}
+                </div>
+                {% endif %}
+                {% if recipe.cook_time %}
+                <div class="meta-item">
+                    <strong>Cook Time:</strong> {{ recipe.cook_time }}
+                </div>
+                {% endif %}
+                {% if recipe.total_time %}
+                <div class="meta-item">
+                    <strong>Total Time:</strong> {{ recipe.total_time }}
+                </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recipe.ingredients %}
+        <section class="recipe-section">
+            <h2>Ingredients</h2>
+            <ul class="ingredient-list">
+                {% for ingredient in recipe.ingredients %}
+                <li>{{ ingredient.name }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        {% if recipe.dietary_restrictions %}
+        <section class="recipe-section">
+            <h2>Dietary Restrictions</h2>
+            <div class="dietary-tags">
+                {% for restriction in recipe.dietary_restrictions %}
+                <span class="chip dietary">{{ restriction }}</span>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recipe.nutritional_info %}
+        <section class="recipe-section">
+            <h2>Nutritional Information</h2>
+            {% if recipe.nutritional_context %}
+            <p class="nutritional-context"><em>Values are {{ recipe.nutritional_context }}</em></p>
+            {% endif %}
+            <div class="nutritional-info">
+                {% for prop_name, value in recipe.nutritional_info.items() %}
+                <div class="nutrition-item">
+                    <strong>{{ prop_name }}:</strong> {{ value }}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="recipe-section">
+            <h2>Technical Details</h2>
+            <div class="technical-info">
+                <p><strong>Recipe URI:</strong> <code>{{ recipe.uri }}</code></p>
+            </div>
+        </section>
+    </article>
+</div>
+{% endblock %}
+

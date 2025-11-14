@@ -20,7 +20,6 @@
             <div id="autocomplete-list" class="autocomplete-list"></div>
         </div>
         
-        <!-- Sorting dropdown -->
         <select name="sort" id="sort">
             <option value="usda_desc" {% if sort=='usda_desc' %}selected{% endif %}>USDA Score (High → Low)</option>
             <option value="usda_asc" {% if sort=='usda_asc' %}selected{% endif %}>USDA Score (Low → High)</option>
@@ -42,12 +41,14 @@
     {% if items %}
     <ul>
         {% for r in items %}
-        <li>
-            <p>{{ r.name.value | replace('"','') }}</p>
-            <div class="recipe-meta">
-                <span class="chip usda">USDA: {{ r.usdascore.value }}</span>
-                <span class="chip cal">Calories: {{ r.calAmount.value }} kcal</span>
-            </div>
+        <li class="recipe-item">
+            <a href="{{ url_for('recipe.detail', recipe_uri=r.recipe.value) }}" class="recipe-link">
+                <p>{{ r.name.value | replace('"','') }}</p>
+                <div class="recipe-meta">
+                    <span class="chip usda">USDA: {{ r.usdascore.value }}</span>
+                    <span class="chip cal">Calories: {{ r.calAmount.value }} kcal</span>
+                </div>
+            </a>
         </li>
         {% endfor %}
     </ul>
@@ -110,20 +111,18 @@
     
     function selectIngredient(ingredient, start, end) {
         const value = ingredientsInput.value;
-        const before = value.substring(0, start).trimEnd(); // trim only end
-        const after = value.substring(end).trimStart();     // trim only start
+        const before = value.substring(0, start).trimEnd();
+        const after = value.substring(end).trimStart();
 
         let newValue;
 
         if (before) {
-            // Ensure there's a comma only if before doesn't already end with one
             newValue = before.endsWith(',') ? before + ' ' + ingredient : before + ', ' + ingredient;
         } else {
             newValue = ingredient;
         }
 
         if (after) {
-            // Add comma if after does not already start with one
             newValue += after.startsWith(',') ? ' ' + after : ', ' + after;
         }
 
@@ -131,7 +130,6 @@
         autocompleteList.style.display = 'none';
         ingredientsInput.focus();
 
-        // Move cursor to after the inserted ingredient
         const newPos = (before ? before.length : 0) + (before && !before.endsWith(',') ? 2 : 1) + ingredient.length;
         ingredientsInput.setSelectionRange(newPos, newPos);
     }
@@ -156,10 +154,8 @@
         if (currentFocus >= 0 && items[currentFocus]) items[currentFocus].click();
     }
 
-    // Trigger autocomplete on typing
     ingredientsInput.addEventListener('input', showAutocomplete);
 
-    // Trigger autocomplete on focus only if input already has value
     ingredientsInput.addEventListener('focus', function() {
         if (ingredientsInput.value.trim()) {
             showAutocomplete();

@@ -215,9 +215,8 @@ main {
     gap: 16px;
 }
 
-/* Each recipe becomes a card */
 .content li {
-    margin: 0; /* grid handles spacing */
+    margin: 0;
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -229,24 +228,21 @@ main {
 .content li:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-    border-color: #dbe3ef; /* subtle lift */
+    border-color: #dbe3ef;
 }
 
-/* Title line inside the card */
 .content li p {
     margin: 0 0 10px;
     color: var(--text);
     font-weight: 600;
 }
 
-/* Layout for meta row (chips) */
 .recipe-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-/* Base chip */
 .chip {
     display: inline-flex;
     align-items: center;
@@ -261,21 +257,18 @@ main {
     white-space: nowrap;
 }
 
-/* USDA chip accent */
 .chip.usda {
     background: #eef2ff;
     border-color: #e0e7ff;
     color: #1e1b4b;
 }
 
-/* Calories chip accent */
 .chip.cal {
     background: #ecfeff;
     border-color: #cffafe;
     color: #083344;
 }
 
-/* Optional icon dots for chips (pure CSS) */
 .chip::before {
     content: "";
     width: 6px;
@@ -284,14 +277,12 @@ main {
     background: var(--accent);
 }
 
-/* Adjust for light/dark contrast if you swap themes later */
 @media (prefers-contrast: more) {
     .chip {
         border-width: 2px;
     }
 }
 
-/* Autocomplete styles */
 .autocomplete-wrapper {
     position: relative;
 }
@@ -335,7 +326,6 @@ main {
     font-weight: 600;
 }
 
-/* Sorting dropdown styling */
 .search-form select {
     width: 100%;
     padding: 10px 14px;
@@ -345,7 +335,7 @@ main {
     font-family: inherit;
     color: var(--text);
     background: var(--panel);
-    appearance: none; /* removes default arrow */
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%236b7280' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
@@ -362,15 +352,210 @@ main {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Optional: on hover, highlight border */
 .search-form select:hover {
     border-color: var(--accent-hover);
 }
 
-/* On smaller screens, make select full width */
 @media (max-width: 480px) {
     .search-form select {
         font-size: 0.95rem;
         padding: 8px 12px;
     }
+}
+
+.recipe-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+.recipe-link:hover {
+    color: inherit;
+}
+
+.recipe-item {
+    cursor: pointer;
+}
+
+.recipe-detail {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 10px 16px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 120ms ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.back-link:hover {
+    color: var(--accent);
+    background: #f8fafc;
+    border-color: var(--accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.back-link:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.back-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: transform 120ms ease;
+}
+
+.back-link:hover .back-icon {
+    transform: translateX(-2px);
+}
+
+.recipe-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 32px;
+}
+
+.recipe-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.recipe-header h1 {
+    font-size: 2rem;
+    margin: 0 0 16px;
+    color: var(--text);
+}
+
+.recipe-scores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.recipe-section {
+    margin-bottom: 32px;
+}
+
+.recipe-section:last-child {
+    margin-bottom: 0;
+}
+
+.recipe-section h2 {
+    font-size: 1.5rem;
+    margin: 0 0 16px;
+    color: var(--text);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 8px;
+}
+
+.recipe-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.meta-item {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.meta-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.ingredient-list li {
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 0;
+}
+
+.dietary-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip.dietary {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #14532d;
+}
+
+.nutritional-context {
+    margin: 0 0 16px 0;
+    padding: 8px 12px;
+    background: #f0f9ff;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.nutritional-info {
+    display: grid;
+    gap: 12px;
+}
+
+.nutrition-item {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.nutrition-item strong {
+    color: var(--text);
+    margin-right: 8px;
+}
+
+.technical-info {
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.technical-info code {
+    display: block;
+    margin-top: 8px;
+    padding: 8px;
+    word-break: break-all;
+    font-size: 0.875rem;
 }
