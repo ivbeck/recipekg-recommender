@@ -7,15 +7,18 @@
     <h2>Find recipes by ingredients</h2>
     <form action="{{ url_for('home.index') }}" class="search-form" method="get">
         <label for="ingredients">Ingredients (comma separated)</label>
-        <input
-                autocomplete="off"
-                id="ingredients"
-                name="ingredients"
-                placeholder="e.g., chicken, rice, tomatoes"
-                required
-                type="text"
-                value="{{ ingredients_query or '' }}"
-        >
+        <div class="autocomplete-wrapper">
+            <input
+                    autocomplete="off"
+                    id="ingredients"
+                    name="ingredients"
+                    placeholder="e.g., chicken, rice, tomatoes"
+                    required
+                    type="text"
+                    value="{{ ingredients_query or '' }}"
+            >
+            <div id="autocomplete-list" class="autocomplete-list"></div>
+        </div>
         <button type="submit">Search</button>
         <a class="clear-button" href="{{ url_for('home.index') }}">Clear</a>
     </form>
@@ -44,7 +47,151 @@
     {% endif %}
     {% endif %}
 </section>
-<pre>
-    {{ possible_ingredients }}
-</pre>
+
+<script>
+(function() {
+    const ingredientsInput = document.getElementById('ingredients');
+    const autocompleteList = document.getElementById('autocomplete-list');
+    const possibleIngredients = {{ possible_ingredients | tojson | safe }};
+    
+    let currentFocus = -1;
+    
+    function getCurrentWord(value, cursorPos) {
+        // Find the start of the current word (after last comma or start of string)
+        let start = value.lastIndexOf(',', cursorPos - 1) + 1;
+        if (start < 0) start = 0;
+        
+        // Get the current word being typed
+        const currentWord = value.substring(start, cursorPos).trim();
+        return { word: currentWord, start: start };
+    }
+    
+    function filterIngredients(query) {
+        if (!query) return [];
+        const lowerQuery = query.toLowerCase();
+        return possibleIngredients.filter(ing => 
+            ing.toLowerCase().includes(lowerQuery)
+        ).slice(0, 10); // Limit to 10 suggestions
+    }
+    
+    function showAutocomplete() {
+        const value = ingredientsInput.value;
+        const cursorPos = ingredientsInput.selectionStart || value.length;
+        const { word, start } = getCurrentWord(value, cursorPos);
+        
+        // Clear previous suggestions
+        autocompleteList.innerHTML = '';
+        currentFocus = -1;
+        
+        if (!word) {
+            autocompleteList.style.display = 'none';
+            return;
+        }
+        
+        const matches = filterIngredients(word);
+        
+        if (matches.length === 0) {
+            autocompleteList.style.display = 'none';
+            return;
+        }
+        
+        // Create suggestion items
+        matches.forEach((ingredient, index) => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerHTML = '<strong>' + ingredient.substring(0, word.length) + '</strong>' + 
+                           ingredient.substring(word.length);
+            item.addEventListener('click', function() {
+                selectIngredient(ingredient, start, cursorPos);
+            });
+            autocompleteList.appendChild(item);
+        });
+        
+        autocompleteList.style.display = 'block';
+    }
+    
+    function selectIngredient(ingredient, start, end) {
+        const value = ingredientsInput.value;
+        const before = value.substring(0, start).trim();
+        const after = value.substring(end).trim();
+        
+        let newValue;
+        if (before && after) {
+            newValue = before + ', ' + ingredient + ', ' + after;
+        } else if (before) {
+            newValue = before + ', ' + ingredient + (after ? ', ' + after : '');
+        } else {
+            newValue = ingredient + (after ? ', ' + after : '');
+        }
+        
+        ingredientsInput.value = newValue;
+        autocompleteList.style.display = 'none';
+        ingredientsInput.focus();
+        
+        // Position cursor after the inserted ingredient
+        const newPos = before.length + (before ? 2 : 0) + ingredient.length;
+        ingredientsInput.setSelectionRange(newPos, newPos);
+    }
+    
+    function moveFocus(direction) {
+        const items = autocompleteList.getElementsByClassName('autocomplete-item');
+        if (items.length === 0) return;
+        
+        currentFocus += direction;
+        
+        if (currentFocus >= items.length) {
+            currentFocus = 0;
+        } else if (currentFocus < 0) {
+            currentFocus = items.length - 1;
+        }
+        
+        // Remove previous active class
+        Array.from(items).forEach(item => item.classList.remove('active'));
+        
+        // Add active class to current item
+        if (items[currentFocus]) {
+            items[currentFocus].classList.add('active');
+            items[currentFocus].scrollIntoView({ block: 'nearest' });
+        }
+    }
+    
+    function selectFocused() {
+        const items = autocompleteList.getElementsByClassName('autocomplete-item');
+        if (currentFocus >= 0 && items[currentFocus]) {
+            items[currentFocus].click();
+        }
+    }
+    
+    ingredientsInput.addEventListener('input', showAutocomplete);
+    ingredientsInput.addEventListener('keydown', function(e) {
+        if (autocompleteList.style.display === 'block') {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                moveFocus(1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                moveFocus(-1);
+            } else if (e.key === 'Enter' && currentFocus >= 0) {
+                e.preventDefault();
+                selectFocused();
+            } else if (e.key === 'Escape') {
+                autocompleteList.style.display = 'none';
+                currentFocus = -1;
+            }
+        }
+    });
+    
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!ingredientsInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+            autocompleteList.style.display = 'none';
+        }
+    });
+    
+    // Initialize autocomplete if there's already a value
+    if (ingredientsInput.value) {
+        showAutocomplete();
+    }
+})();
+</script>
 {% endblock %}
