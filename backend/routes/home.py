@@ -27,7 +27,8 @@ def index():
         input_ingredients, 
         INGREDIENTS, 
         cutoff=0.6, 
-        high_similarity_threshold=0.8
+        high_similarity_threshold=0.8,
+        max_matches=2
     ) if input_ingredients else []
     
     ingredient_groups = [matched_list for _, matched_list in ingredient_matches if matched_list]
