@@ -110,23 +110,29 @@
     
     function selectIngredient(ingredient, start, end) {
         const value = ingredientsInput.value;
-        const before = value.substring(0, start).trim();
-        const after = value.substring(end).trim();
-        
+        const before = value.substring(0, start).trimEnd(); // trim only end
+        const after = value.substring(end).trimStart();     // trim only start
+
         let newValue;
-        if (before && after) {
-            newValue = before + ', ' + ingredient + ', ' + after;
-        } else if (before) {
-            newValue = before + ', ' + ingredient + (after ? ', ' + after : '');
+
+        if (before) {
+            // Ensure there's a comma only if before doesn't already end with one
+            newValue = before.endsWith(',') ? before + ' ' + ingredient : before + ', ' + ingredient;
         } else {
-            newValue = ingredient + (after ? ', ' + after : '');
+            newValue = ingredient;
+        }
+
+        if (after) {
+            // Add comma if after does not already start with one
+            newValue += after.startsWith(',') ? ' ' + after : ', ' + after;
         }
 
         ingredientsInput.value = newValue;
         autocompleteList.style.display = 'none';
         ingredientsInput.focus();
 
-        const newPos = before.length + (before ? 2 : 0) + ingredient.length;
+        // Move cursor to after the inserted ingredient
+        const newPos = (before ? before.length : 0) + (before && !before.endsWith(',') ? 2 : 1) + ingredient.length;
         ingredientsInput.setSelectionRange(newPos, newPos);
     }
 
