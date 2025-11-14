@@ -25,7 +25,7 @@
     {% if recipes is none %}
     <p>Enter ingredients and hit search.</p>
     {% else %}
-    <h3>Results for: {{ ingredients_query }}</h3>
+    <h3>Results for: {{ ingredients_query }} (matched ingredient groups: {{ ingredient_groups }})</h3>
     {% set items = recipes.results.bindings if recipes and recipes.results and recipes.results.bindings else [] %}
     {% if items %}
     <ul>

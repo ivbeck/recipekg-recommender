@@ -1,2 +1,3 @@
 from .ingredient_list_fetcher import get_ingredient_list
+from .ingredient_matcher import match_ingredients, get_matched_ingredients_only
 from .recipe_candidate_fetcher import fetch_recipes_by_ingredients

@@ -1,9 +1,24 @@
 from __future__ import annotations
 
+import logging
 import os
 
 from dotenv import load_dotenv
 from flask import Flask
+
+
+load_dotenv()
+log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
+log_level = getattr(logging, log_level_str, logging.INFO)
+if not isinstance(log_level, int):
+    log_level = logging.INFO
+
+
+logging.basicConfig(
+    level=log_level,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True
+)
 
 from backend.services import get_ingredient_list
 
@@ -11,7 +26,6 @@ INGREDIENTS = get_ingredient_list()
 
 
 def create_app() -> Flask:
-    load_dotenv()
 
     app = Flask(
         __name__.split(".")[0],
@@ -19,7 +33,7 @@ def create_app() -> Flask:
         template_folder="templates",
     )
 
-    # Basic config
+    
     app.config.setdefault("SECRET_KEY", os.getenv("SECRET_KEY", "dev-secret-key"))
     app.config.setdefault(
         "SPARQL_ENDPOINT",
@@ -42,5 +56,5 @@ def create_app() -> Flask:
     return app
 
 
-# Provide an "app" for tools that import it directly (e.g., some IDE run configs)
+
 app = create_app()
