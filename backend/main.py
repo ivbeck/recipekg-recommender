@@ -48,7 +48,7 @@ def create_app() -> Flask:
     @app.context_processor
     def inject_globals():
         return {
-            "app_name": "foodkg-recommender",
+            "app_name": "recipekg-recommender",
             "sparql_endpoint": app.config.get("SPARQL_ENDPOINT"),
             "possible_ingredients": INGREDIENTS,
         }
