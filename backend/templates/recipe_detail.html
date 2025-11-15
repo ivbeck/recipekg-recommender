@@ -12,11 +12,35 @@
     <article class="recipe-card">
         <header class="recipe-header">
             <h1>{{ recipe.name or 'Unnamed Recipe' }}</h1>
-            {% if recipe.usda_score %}
+            {% if recipe.usda_score or recipe.fsa_score or recipe.calories or recipe.rating %}
             <div class="recipe-scores">
+                {% if recipe.usda_score %}
                 <span class="chip usda">USDA Score: {{ recipe.usda_score }}</span>
+                {% endif %}
+                {% if recipe.fsa_score %}
+                <span class="chip fsa">FSA Score: {{ recipe.fsa_score }}</span>
+                {% endif %}
                 {% if recipe.calories %}
                 <span class="chip cal">Calories: {{ recipe.calories }} kcal</span>
+                {% endif %}
+                {% if recipe.rating %}
+                <span class="chip rating">
+                    ⭐ {{ recipe.rating.value|round(1) }}{% if recipe.rating.count %} ({{ recipe.rating.count }} reviews){% endif %}
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if recipe.date_published or recipe.categories %}
+            <div class="recipe-meta-header">
+                {% if recipe.date_published %}
+                <span class="meta-text">Published: {{ recipe.date_published[:10] }}</span>
+                {% endif %}
+                {% if recipe.categories %}
+                <div class="category-tags">
+                    {% for category in recipe.categories %}
+                    <span class="chip category">{{ category }}</span>
+                    {% endfor %}
+                </div>
                 {% endif %}
             </div>
             {% endif %}
@@ -62,9 +86,37 @@
             <h2>Ingredients</h2>
             <ul class="ingredient-list">
                 {% for ingredient in recipe.ingredients %}
-                <li>{{ ingredient.name }}</li>
+                <li>{{ ingredient.display or ingredient.name }}</li>
                 {% endfor %}
             </ul>
+        </section>
+        {% endif %}
+
+        {% if recipe.rating and recipe.rating.count %}
+        <section class="recipe-section">
+            <h2>Rating</h2>
+            <div class="rating-details">
+                <div class="rating-value">
+                    <strong>{{ recipe.rating.value|round(1) }}</strong>
+                    {% if recipe.rating.best %}
+                    <span class="rating-scale">/ {{ recipe.rating.best }}</span>
+                    {% endif %}
+                </div>
+                {% if recipe.rating.count %}
+                <p class="rating-count">Based on {{ recipe.rating.count }} review{{ 's' if recipe.rating.count != 1 else '' }}</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recipe.categories %}
+        <section class="recipe-section">
+            <h2>Categories</h2>
+            <div class="category-tags">
+                {% for category in recipe.categories %}
+                <span class="chip category">{{ category }}</span>
+                {% endfor %}
+            </div>
         </section>
         {% endif %}
 

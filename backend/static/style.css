@@ -269,6 +269,24 @@ main {
     color: #083344;
 }
 
+.chip.fsa {
+    background: #fef3c7;
+    border-color: #fde68a;
+    color: #78350f;
+}
+
+.chip.rating {
+    background: #fef3c7;
+    border-color: #fde68a;
+    color: #78350f;
+}
+
+.chip.category {
+    background: #f3e8ff;
+    border-color: #e9d5ff;
+    color: #581c87;
+}
+
 .chip::before {
     content: "";
     width: 6px;
@@ -449,6 +467,58 @@ main {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-bottom: 12px;
+}
+
+.recipe-meta-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.recipe-meta-header .meta-text {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.recipe-meta-header .category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rating-details {
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.rating-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.rating-value .rating-scale {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--muted);
+}
+
+.rating-count {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
 }
 
 .recipe-section {

@@ -10,5 +10,8 @@ ifeq ($(OS),Windows_NT)
     ACTIVATE = $(VENV)/Scripts/activate
 endif
 
-all: 
-        $(ACTIVATE) && flask run
+dev: 
+	$(ACTIVATE) && flask run
+
+run-fuseki:
+	docker start fuseki || docker run -d -p 3030:3030 --name fuseki apache/jena-fuseki:latest

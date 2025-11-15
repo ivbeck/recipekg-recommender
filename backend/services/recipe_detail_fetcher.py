@@ -29,41 +29,70 @@ class RecipeDetailQueryBuilder:
     SELECT DISTINCT 
         ?name 
         ?usdascore 
+        ?fsascore
         ?calAmount 
         ?description
         ?recipeYield
         ?prepTime
         ?cookTime
         ?totalTime
+        ?datePublished
         ?ingredientName
         ?ingredientType
+        ?ingredientQuantity
+        ?ingredientUnit
         ?dietaryRestriction
         ?nutritionalProperty
         ?nutritionalAmount
         ?nutritionalUnit
         ?servingSize
         ?servingSizeUnit
+        ?ratingValue
+        ?ratingCount
+        ?bestRating
+        ?worstRating
+        ?category
     WHERE {{
         <{recipe_uri_escaped}> a schema:Recipe .
         
         OPTIONAL {{ <{recipe_uri_escaped}> schema:name ?name . }}
         OPTIONAL {{ <{recipe_uri_escaped}> recipeKG:hasUSDAScore ?usdascore . }}
+        OPTIONAL {{ <{recipe_uri_escaped}> recipeKG:hasFSAScore ?fsascore . }}
         OPTIONAL {{ <{recipe_uri_escaped}> schema:description ?description . }}
         OPTIONAL {{ <{recipe_uri_escaped}> schema:recipeYield ?recipeYield . }}
         OPTIONAL {{ <{recipe_uri_escaped}> schema:prepTime ?prepTime . }}
         OPTIONAL {{ <{recipe_uri_escaped}> schema:cookTime ?cookTime . }}
         OPTIONAL {{ <{recipe_uri_escaped}> schema:totalTime ?totalTime . }}
+        OPTIONAL {{ <{recipe_uri_escaped}> schema:datePublished ?datePublished . }}
         
         OPTIONAL {{
             <{recipe_uri_escaped}> food:hasIngredient ?ingredient .
             ?ingredient rdf:type ?ingredientType .
             OPTIONAL {{
-                ?ingredient schema:name ?ingredientName .
+                ?ingredient recipeKG:ingredientName ?ingredientName .
+            }}
+            OPTIONAL {{
+                ?ingredient recipeKG:hasQuantity ?ingredientQuantity .
+            }}
+            OPTIONAL {{
+                ?ingredient recipeKG:hasUnit ?ingredientUnit .
             }}
         }}
         
         OPTIONAL {{
             <{recipe_uri_escaped}> recipeKG:hasDietaryRestriction ?dietaryRestriction .
+        }}
+        
+        OPTIONAL {{
+            <{recipe_uri_escaped}> recipeKG:belongsTo ?category .
+        }}
+        
+        OPTIONAL {{
+            <{recipe_uri_escaped}> schema:aggregateRating ?rating .
+            ?rating schema:ratingValue ?ratingValue .
+            OPTIONAL {{ ?rating schema:ratingCount ?ratingCount . }}
+            OPTIONAL {{ ?rating schema:bestRating ?bestRating . }}
+            OPTIONAL {{ ?rating schema:worstRating ?worstRating . }}
         }}
         
         OPTIONAL {{
@@ -151,21 +180,28 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
             "name": None,
             "description": None,
             "usda_score": None,
+            "fsa_score": None,
             "calories": None,
-            "recipe_yield": None,
+            "recipe_yield": [],
             "prep_time": None,
             "cook_time": None,
             "total_time": None,
+            "date_published": None,
             "ingredients": [],
             "dietary_restrictions": [],
+            "categories": [],
+            "rating": None,
             "nutritional_info": {},
             "serving_size": None,
             "serving_size_unit": None
         }
         
-        seen_ingredients = set()
+        seen_ingredients = {}  # Changed to dict to track by name and aggregate quantities
         seen_dietary = set()
         seen_nutritional = set()
+        seen_yields = set()
+        seen_categories = set()
+        seen_ratings = set()
         
         for binding in bindings:
             if not recipe_data["name"] and "name" in binding:
@@ -177,11 +213,24 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
             if not recipe_data["usda_score"] and "usdascore" in binding:
                 recipe_data["usda_score"] = binding["usdascore"]["value"]
             
+            if "fsascore" in binding:
+                fsa_value = binding["fsascore"]["value"]
+                if not recipe_data["fsa_score"]:
+                    recipe_data["fsa_score"] = fsa_value
+                elif isinstance(recipe_data["fsa_score"], list):
+                    if fsa_value not in recipe_data["fsa_score"]:
+                        recipe_data["fsa_score"].append(fsa_value)
+                elif recipe_data["fsa_score"] != fsa_value:
+                    recipe_data["fsa_score"] = [recipe_data["fsa_score"], fsa_value]
+            
             if not recipe_data["calories"] and "calAmount" in binding:
                 recipe_data["calories"] = binding["calAmount"]["value"]
             
-            if not recipe_data["recipe_yield"] and "recipeYield" in binding:
-                recipe_data["recipe_yield"] = binding["recipeYield"]["value"]
+            if "recipeYield" in binding:
+                yield_value = binding["recipeYield"]["value"]
+                if yield_value not in seen_yields:
+                    seen_yields.add(yield_value)
+                    recipe_data["recipe_yield"].append(yield_value)
             
             if not recipe_data["prep_time"] and "prepTime" in binding:
                 recipe_data["prep_time"] = binding["prepTime"]["value"]
@@ -191,6 +240,9 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
             
             if not recipe_data["total_time"] and "totalTime" in binding:
                 recipe_data["total_time"] = binding["totalTime"]["value"]
+            
+            if not recipe_data["date_published"] and "datePublished" in binding:
+                recipe_data["date_published"] = binding["datePublished"]["value"]
             
             if not recipe_data["serving_size"] and "servingSize" in binding:
                 recipe_data["serving_size"] = binding["servingSize"]["value"]
@@ -202,20 +254,69 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
                 else:
                     recipe_data["serving_size_unit"] = unit_value
             
-            if "ingredientType" in binding:
-                ing_type = binding["ingredientType"]["value"]
+            if "ingredientName" in binding or "ingredientType" in binding:
+                ing_name = None
+                ing_type = None
+                ing_quantity = None
+                ing_unit = None
+                
                 if "ingredientName" in binding:
                     ing_name = binding["ingredientName"]["value"]
-                else:
+                elif "ingredientType" in binding:
+                    ing_type = binding["ingredientType"]["value"]
                     ing_name = ing_type.split("/")[-1] if "/" in ing_type else ing_type
                 
-                ing_key = (ing_type, ing_name)
-                if ing_key not in seen_ingredients:
-                    seen_ingredients.add(ing_key)
-                    recipe_data["ingredients"].append({
-                        "name": ing_name,
-                        "type": ing_type
-                    })
+                if "ingredientType" in binding:
+                    ing_type = binding["ingredientType"]["value"]
+                
+                if "ingredientQuantity" in binding:
+                    ing_quantity = binding["ingredientQuantity"]["value"]
+                
+                if "ingredientUnit" in binding:
+                    ing_unit = binding["ingredientUnit"]["value"]
+                
+                if ing_name:
+                    # Build ingredient display string
+                    parts = []
+                    if ing_quantity:
+                        parts.append(ing_quantity)
+                    if ing_unit:
+                        parts.append(ing_unit)
+                    if ing_name:
+                        parts.append(ing_name)
+                    
+                    display_name = " ".join(parts) if parts else ing_name
+                    
+                    # Use ingredient name as key for aggregation
+                    if ing_name not in seen_ingredients:
+                        seen_ingredients[ing_name] = {
+                            "name": ing_name,
+                            "type": ing_type,
+                            "display": display_name,
+                            "quantities": []
+                        }
+                        if ing_quantity:
+                            seen_ingredients[ing_name]["quantities"].append({
+                                "quantity": ing_quantity,
+                                "unit": ing_unit
+                            })
+                    elif ing_quantity:
+                        # Check if this quantity/unit combo is new
+                        qty_info = {"quantity": ing_quantity, "unit": ing_unit}
+                        if qty_info not in seen_ingredients[ing_name]["quantities"]:
+                            seen_ingredients[ing_name]["quantities"].append(qty_info)
+                            # Update display to show multiple quantities
+                            if len(seen_ingredients[ing_name]["quantities"]) > 1:
+                                qty_strs = []
+                                for q in seen_ingredients[ing_name]["quantities"]:
+                                    qty_parts = [q["quantity"]]
+                                    if q["unit"]:
+                                        qty_parts.append(q["unit"])
+                                    qty_strs.append(" ".join(qty_parts))
+                                seen_ingredients[ing_name]["display"] = f"{', '.join(qty_strs)} {ing_name}"
+                            else:
+                                # Single quantity, update display
+                                seen_ingredients[ing_name]["display"] = display_name
             
             if "dietaryRestriction" in binding:
                 dietary = binding["dietaryRestriction"]["value"]
@@ -223,6 +324,33 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
                 if dietary_name not in seen_dietary:
                     seen_dietary.add(dietary_name)
                     recipe_data["dietary_restrictions"].append(dietary_name)
+            
+            if "category" in binding:
+                category = binding["category"]["value"]
+                category_name = category.split("/")[-1] if "/" in category else category
+                # Clean up category name (remove trailing slashes, replace hyphens with spaces)
+                category_name = category_name.rstrip("/").replace("-", " ").title()
+                if category_name and category_name not in seen_categories:
+                    seen_categories.add(category_name)
+                    recipe_data["categories"].append(category_name)
+            
+            if "ratingValue" in binding:
+                rating_key = binding["ratingValue"]["value"]
+                if rating_key not in seen_ratings:
+                    seen_ratings.add(rating_key)
+                    rating_data = {
+                        "value": float(binding["ratingValue"]["value"]),
+                        "count": None,
+                        "best": None,
+                        "worst": None
+                    }
+                    if "ratingCount" in binding:
+                        rating_data["count"] = int(binding["ratingCount"]["value"])
+                    if "bestRating" in binding:
+                        rating_data["best"] = float(binding["bestRating"]["value"])
+                    if "worstRating" in binding:
+                        rating_data["worst"] = float(binding["worstRating"]["value"])
+                    recipe_data["rating"] = rating_data
             
             if "nutritionalProperty" in binding and "nutritionalAmount" in binding:
                 prop = binding["nutritionalProperty"]["value"]
@@ -280,6 +408,32 @@ def fetch_recipe_details(recipe_uri: str) -> Optional[Dict[str, Any]]:
                     else:
                         logger.debug("Skipping duplicate nutritional info: %s (already have: %s)", 
                                     display_name, recipe_data["nutritional_info"][display_name])
+        
+        # Convert ingredients dict to list
+        recipe_data["ingredients"] = [
+            {
+                "name": ing["name"],
+                "type": ing["type"],
+                "display": ing["display"]
+            }
+            for ing in seen_ingredients.values()
+        ]
+        
+        # Format recipe yield - join multiple yields or use single value
+        if recipe_data["recipe_yield"]:
+            if len(recipe_data["recipe_yield"]) == 1:
+                recipe_data["recipe_yield"] = recipe_data["recipe_yield"][0]
+            else:
+                recipe_data["recipe_yield"] = " or ".join(recipe_data["recipe_yield"])
+        else:
+            recipe_data["recipe_yield"] = None
+        
+        # Format FSA score - join multiple scores or use single value
+        if isinstance(recipe_data["fsa_score"], list):
+            if len(recipe_data["fsa_score"]) == 1:
+                recipe_data["fsa_score"] = recipe_data["fsa_score"][0]
+            else:
+                recipe_data["fsa_score"] = ", ".join(map(str, recipe_data["fsa_score"]))
         
         if recipe_data["serving_size"] and recipe_data["serving_size_unit"]:
             recipe_data["nutritional_context"] = f"per {recipe_data['serving_size']} {recipe_data['serving_size_unit']}"
