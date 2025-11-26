@@ -15,7 +15,7 @@ cp .env.example .env
 # Edit .env to change the Recipe endpoint or secret key
 
 # 4) Run the dev server
-make run
+make dev
 # or if you're not using make
 flask --app backend.main run --debug
 
